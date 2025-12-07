@@ -1,16 +1,15 @@
 # CCNA – Data Link Layer (Module 6)
 
 Quick-reference notes for NetAcad CCNA – **Module 6: Data Link Layer**.  
-Focus is on how Layer 2 prepares data for transmission, controls access to the
-medium, and wraps packets into frames for both LAN and WAN links.
+Focus is on how Layer 2 prepares network data for the physical medium and
+controls access to that medium.
 
 I use this repo to revise:
 
-- The **role of Layer 2** between the Network and Physical layers.
-- The difference between the **LLC and MAC sublayers**.
-- How **topologies** and **access methods** affect media access.
-- The structure of a **data link frame** and how MAC addresses work.
-- Key standards bodies (IEEE, ITU, ISO, ANSI) for the network access layer.
+- The **role of the data link layer** between the Network and Physical layers.
+- The **LLC and MAC** sublayers and what each one does.
+- How the data link layer **provides access to media** at every hop.
+- Which **standards organizations** define Layer 2 technologies.
 
 ---
 
@@ -30,27 +29,9 @@ I use this repo to revise:
   - [6.1.4 Data Link Layer Standards](#614-data-link-layer-standards)  
   - [6.1.5 Check Your Understanding – Purpose of the Data Link Layer](#615-check-your-understanding--purpose-of-the-data-link-layer)
 
-- [6.2 Topologies](#62-topologies)  
-  - [6.2.1 Physical and Logical Topologies](#621-physical-and-logical-topologies)  
-  - [6.2.2 WAN Topologies](#622-wan-topologies)  
-  - [6.2.3 Point-to-Point WAN Topology](#623-point-to-point-wan-topology)  
-  - [6.2.4 LAN Topologies](#624-lan-topologies)  
-  - [6.2.5 Half and Full Duplex Communication](#625-half-and-full-duplex-communication)  
-  - [6.2.6 Access Control Methods](#626-access-control-methods)  
-  - [6.2.7 Contention-Based Access – CSMA/CD](#627-contention-based-access--csmacd)  
-  - [6.2.8 Contention-Based Access – CSMA/CA](#628-contention-based-access--csmaca)  
-  - [6.2.9 Check Your Understanding – Topologies](#629-check-your-understanding--topologies)
-
-- [6.3 Data Link Frame](#63-data-link-frame)  
-  - [6.3.1 The Frame](#631-the-frame)  
-  - [6.3.2 Frame Fields](#632-frame-fields)  
-  - [6.3.3 Layer 2 Addresses](#633-layer-2-addresses)  
-  - [6.3.4 LAN and WAN Frames](#634-lan-and-wan-frames)  
-  - [6.3.5 Check Your Understanding – Data Link Frame](#635-check-your-understanding--data-link-frame)
-
-- [6.4 Module Practice and Quiz](#64-module-practice-and-quiz)  
-  - [6.4.1 What did I learn in this module?](#641-what-did-i-learn-in-this-module)  
-  - [6.4.2 Module Quiz – Data Link Layer](#642-module-quiz--data-link-layer)
+- 6.2 Topologies *(to be filled in)*  
+- 6.3 Data Link Frame *(to be filled in)*  
+- 6.4 Module Practice and Quiz *(to be filled in)*
 
 ---
 
@@ -58,40 +39,37 @@ I use this repo to revise:
 
 ### Goal of the module
 
-This module explains **how data actually crosses the wire (or air)**:
+Every network has **physical components and media** connecting devices.  
+Different media (copper, fiber, wireless, serial links…) need different
+information about the data so it can be accepted and moved across the physical
+network.
 
-- How the data link layer takes a Layer 3 packet and wraps it into a **frame**
-  that can use a specific physical medium.
-- How **LLC and MAC** split responsibilities between software and hardware.
-- How different **topologies and access methods** impact collisions, bandwidth
-  sharing, and performance.
-- How **Layer 2 addressing** and frame fields enable error detection and
-  delivery to the correct next-hop device.
+The data link layer provides this “help”:
 
-The idea is to understand what happens between the IP packet and the physical
-signal, so that troubleshooting at Layer 2 actually makes sense.
+- It prepares network data from upper layers so it can travel over a specific
+  medium.
+- It handles **framing, addressing, and access control** to make sure data can
+  be delivered successfully.
+
+This module gives an overview of these factors, how they affect data, and the
+protocols designed to ensure successful delivery.
 
 ---
 
 ## Module Map
 
+From the NetAcad outline:
+
 - **6.0 – Introduction**  
-  Why the data link layer is necessary and what this module will cover.
+  Why this module matters and what you will learn.
 
 - **6.1 – Purpose of the Data Link Layer**  
-  Main responsibilities of Layer 2, its sublayers, and the standards that define
-  them.
+  What Layer 2 does, its sublayers (LLC/MAC), how it provides access to media,
+  and which standards bodies define it.
 
-- **6.2 – Topologies**  
-  Physical vs logical layouts, WAN and LAN topologies, and media access methods
-  (half/full duplex, CSMA/CD, CSMA/CA).
-
-- **6.3 – Data Link Frame**  
-  What a frame looks like, what each field does, and the difference between LAN
-  and WAN framing.
-
-- **6.4 – Module Practice and Quiz**  
-  Wrap-up summary and final graded quiz for Module 6.
+- **6.2 – Topologies** *(placeholder – notes coming later)*  
+- **6.3 – Data Link Frame** *(placeholder – notes coming later)*  
+- **6.4 – Module Practice and Quiz** *(placeholder – notes coming later)*
 
 ---
 
@@ -99,27 +77,40 @@ signal, so that troubleshooting at Layer 2 actually makes sense.
 
 ### 6.0.1 Why should I take this module?
 
-Every network has **physical media** and devices attached to it.  
-Bits don’t magically flow across copper, fiber, or wireless – they need rules
-about:
+Welcome to **Data Link Layer**!
 
-- How data is packaged for a specific medium.
-- How devices decide **who can talk and when**.
-- How errors are detected and bad data is discarded.
+- Every network has **physical components** and **media** connecting them.  
+- Different types of media need **different information** about the data to
+  accept it and move it across the network.
 
-The data link layer exists exactly for this: it gives data the “push” it needs
-to cross each link reliably, regardless of what the medium is.
+Think of it like this:
+
+- A well-hit golf ball moves quickly through the air.  
+- The **same ball** moves more slowly through water unless you hit it much
+  harder.  
+- The environment (air vs water) changes how the ball behaves.
+
+Exactly the same for data: as it moves across different media, it needs help.
+The data link layer provides that help – and the way it works depends on the
+medium and the network technology in use.
+
+This module explains those differences and how the data link layer supports
+communication across networks.
 
 ### 6.0.2 What will I learn to do in this module?
 
-After this module I should be able to:
+From the module objectives table:
 
-- Describe the **job of Layer 2** in the OSI model.
-- Explain the roles of the **LLC and MAC sublayers**.
-- Compare common **LAN and WAN topologies**.
-- Explain **half vs full duplex** and basic access control methods.
-- Describe **frame structure** and the purpose of key fields.
-- Recognize major **standards organizations** that define data link protocols.
+- **Purpose of the Data Link Layer**  
+  Describe the **purpose and function** of the data link layer in preparing
+  communication for transmission on specific media.
+
+- **Topologies**  
+  Compare the characteristics of **media access control methods** on WAN and
+  LAN topologies.
+
+- **Data Link Frame**  
+  Describe the **characteristics and functions** of the data link frame.
 
 ---
 
@@ -127,80 +118,134 @@ After this module I should be able to:
 
 ### 6.1.1 The Data Link Layer
 
-Layer 2 sits between the **Network layer (Layer 3)** and the **Physical layer
-(Layer 1)**. In practice it:
+Layer 2 of the OSI model (the **data link layer**) prepares network data for the
+**physical network**.
 
-- Receives packets (usually IPv4 or IPv6) from Layer 3 and **encapsulates** them
-  into frames.
-- Adds **source and destination Layer 2 addresses** (e.g. MAC addresses).
-- Controls how data is **placed on and removed from** the physical medium.
-- Exchanges frames between devices sharing the same medium or segment.
-- Performs **error detection** using trailers (like FCS) and drops corrupted
-  frames.
-- Hides the details of the physical media so upper layers can stay media-agnostic.
+It is responsible for communication between **network interface cards (NICs)**:
 
-Key idea: Layer 3 only cares about sending a packet to the next hop.  
-Layer 2 worries about how to actually **deliver it over the current link**.
+- Enables upper layers (like IP) to **access the media** without knowing the
+  details of the medium.
+- Accepts Layer 3 packets (IPv4, IPv6, etc.) and **encapsulates** them into
+  Layer 2 frames.
+- Controls **how data is placed on and received from** the media.
+- Exchanges frames between endpoints over the network medium.
+- Receives encapsulated data, directs it to the proper upper-layer protocol, and
+  strips off the Layer 2 information.
+- Performs **error detection** and rejects any corrupt frames.
+
+In short: Layer 2 is the translator between the **network layer** and the
+**physical medium**.
 
 ### 6.1.2 IEEE 802 LAN/MAN Data Link Sublayers
 
-For LANs and MANs, IEEE 802 splits Layer 2 into two sublayers:
+IEEE 802 LAN/MAN standards apply to:
 
-- **Logical Link Control (LLC – IEEE 802.2)**  
-  - Sits closer to the upper layers.  
-  - Adds control information to identify which Network layer protocol is inside
-    the frame (IPv4, IPv6, etc.).  
-  - Allows multiple Layer 3 protocols to share the same network interface and
-    medium.
+- Ethernet LANs  
+- Wireless LANs (WLAN)  
+- Wireless personal area networks (WPAN)  
+- Other types of local and metropolitan area networks
 
-- **Media Access Control (MAC – e.g. IEEE 802.3, 802.11, 802.15)**  
-  - Implemented in hardware (NICs, wireless cards, etc.).  
-  - Handles **encapsulation**, **MAC addressing**, and **media access control**.  
-  - Integrates with the chosen physical technology (Ethernet, Wi-Fi, Bluetooth,
-    etc.).
+The IEEE 802 data link layer is split into two **sublayers**:
 
-LLC = talks to Layer 3 and labels the payload.  
-MAC = talks to the medium and actually sends/receives frames.
+- **Logical Link Control (LLC)**  
+  - Communicates between networking software at the upper layers and the device
+    hardware at the lower layers.  
+  - Places information in the frame that identifies **which Network layer
+    protocol** (IPv4, IPv6, etc.) is being used.  
+  - Allows multiple Layer 3 protocols to use the **same network interface and
+    media**.
 
-The figure shows the two sublayers (LLC and MAC) of the data link layer.
-<img width="913" height="744" alt="image" src="https://github.com/user-attachments/assets/0ad9fee9-cebd-483f-9b84-2c8775085e6e" />
+- **Media Access Control (MAC)**  
+  - Implemented in hardware (NICs and related components).  
+  - Responsible for **data encapsulation** and **media access control**.  
+  - Provides **data link addressing** and integrates with various physical layer
+    technologies (Ethernet, WLAN, WPAN, etc.).
 
+The figure in NetAcad shows the LLC and MAC sublayers stacked between the
+Network and Physical layers.
 
 ### 6.1.3 Providing Access to Media
 
-Each network segment along a path can use a **different medium** and a different
-Layer 2 protocol. At every hop, a router will:
+As packets travel from a local host to a remote host, they cross **different
+network environments** and **different media**. Each environment can have:
 
-1. **Receive** a frame from the incoming medium.
-2. **De-encapsulate** the frame to recover the Layer 3 packet.
-3. **Re-encapsulate** that packet into a new frame appropriate for the outbound
-   interface.
-4. **Transmit** the new frame on the next physical link.
+- Different numbers of hosts contending for the medium.
+- Different access methods (e.g. Ethernet vs serial links).
 
-The MAC sublayer’s access method decides *how* the device gets permission to use
-the medium – very important when many hosts share the same link.
+The MAC sublayer resolves these differences by using appropriate **media access
+control methods**.
+
+For each hop along the path, a router’s data link layer does four main things:
+
+1. **Accepts a frame** from a medium.  
+2. **De-encapsulates** the frame to recover the Layer 3 packet.  
+3. **Re-encapsulates** the packet into a new frame suitable for the next
+   medium.  
+4. **Forwards** the new frame onto the appropriate physical link.
+
+The animation in NetAcad shows a router with an Ethernet interface toward the
+LAN and a serial interface toward the WAN. At each interface, the router uses
+the local data link protocol to receive, strip, wrap, and send the packet on its
+way.
 
 ### 6.1.4 Data Link Layer Standards
 
-Unlike upper TCP/IP layers (often documented in IETF RFCs), data link and
-physical standards are usually defined by engineering organizations such as:
+Data link and physical layer protocols are usually not defined by IETF RFCs.
+Instead, **engineering organizations** define open standards and protocols that
+apply to the network access layer (OSI Layers 1 and 2).
 
-- **IEEE** – e.g. Ethernet (802.3), Wi-Fi (802.11), Bluetooth/WPAN (802.15).
-- **ITU** – many WAN and telecom standards.
-- **ISO** – international standardization for many technologies.
-- **ANSI** – standards for North America that often align with ISO/ITU work.
+Key organizations:
 
-These groups define open specifications so different vendors’ NICs, switches and
-routers can interoperate at Layer 2.
+- **IEEE – Institute of Electrical and Electronics Engineers**  
+  Defines many LAN/WLAN/WPAN technologies (e.g. Ethernet, Wi-Fi, Bluetooth).
+
+- **ITU – International Telecommunication Union**  
+  Creates telecom and WAN standards used worldwide.
+
+- **ISO – International Organization for Standardization**  
+  Develops international standards across many technologies, including
+  networking.
+
+- **ANSI – American National Standards Institute**  
+  Coordinates standards within the U.S., often aligning with ISO/ITU work.
+
+These groups ensure that different vendors’ hardware can interoperate at the
+data link and physical layers.
 
 ### 6.1.5 Check Your Understanding – Purpose of the Data Link Layer
 
-Use this quiz section to confirm you can:
+This quiz section in NetAcad checks whether you can:
 
-- State the **main functions** of Layer 2.
-- Distinguish clearly between **LLC and MAC**.
-- Explain what happens to a packet as it crosses a multi-hop path.
+- Identify the **functions** of the data link layer.
+- Distinguish between **LLC** and **MAC** responsibilities.
+- Explain how routers handle frames at **each hop** across different media.
 
-(You can add specific Q/A from NetAcad here later.)
+(Full Q&A will be added here after I complete the check-your-understanding quiz.)
 
 ---
+
+## 6.2 Topologies
+
+*(Section headings only – detailed notes will be added later.)*
+
+- 6.2.1 Physical and Logical Topologies  
+- 6.2.2 WAN Topologies  
+- 6.2.3 Point-to-Point WAN Topology  
+- 6.2.4 LAN Topologies  
+- 6.2.5 Half and Full Duplex Communication  
+- 6.2.6 Access Control Methods  
+- 6.2.7 Contention-Based Access – CSMA/CD  
+- 6.2.8 Contention-Based Access – CSMA/CA  
+- 6.2.9 Check Your Understanding – Topologies  
+
+---
+
+## 6.3 Data Link Frame
+
+*(Placeholder – to be filled in as we go through the screenshots.)*
+
+---
+
+## 6.4 Module Practice and Quiz
+
+*(Placeholder – will be completed after doing the Module 6 quiz.)*
