@@ -162,6 +162,10 @@ For LANs and MANs, IEEE 802 splits Layer 2 into two sublayers:
 LLC = talks to Layer 3 and labels the payload.  
 MAC = talks to the medium and actually sends/receives frames.
 
+The figure shows the two sublayers (LLC and MAC) of the data link layer.
+<img width="913" height="744" alt="image" src="https://github.com/user-attachments/assets/0ad9fee9-cebd-483f-9b84-2c8775085e6e" />
+
+
 ### 6.1.3 Providing Access to Media
 
 Each network segment along a path can use a **different medium** and a different
