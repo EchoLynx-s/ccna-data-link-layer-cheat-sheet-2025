@@ -214,38 +214,257 @@ data link and physical layers.
 
 ### 6.1.5 Check Your Understanding – Purpose of the Data Link Layer
 
-This quiz section in NetAcad checks whether you can:
+My answers to the 6.1.5 quiz:
 
-- Identify the **functions** of the data link layer.
-- Distinguish between **LLC** and **MAC** responsibilities.
-- Explain how routers handle frames at **each hop** across different media.
+1. **What is another name for the OSI data link layer?**  
+   → **Layer 2**
 
-(Full Q&A will be added here after I complete the check-your-understanding quiz.)
+2. **The IEEE 802 LAN/MAN data link layer consists of which two sublayers?**  
+   → **Media Access Control (MAC)** and **Logical Link Control (LLC)**
+
+3. **What is the responsibility of the MAC sublayer?**  
+   → **Provides the method to get the frame on and off the media**
+
+4. **What Layer 2 function does a router perform? (Choose three.)**  
+   → **Accepts a frame from a medium**  
+   → **De-encapsulates the frame**  
+   → **Re-encapsulates the packet into a new frame**
+
+5. **The media access control method used depends on which two criteria?**  
+   → **Media sharing**  
+   → **Topology**
+
+6. **Which organization defines standards for the network access layer (OSI
+   physical and data link layers)?**  
+   → **IEEE**
+
 
 ---
 
 ## 6.2 Topologies
 
-*(Section headings only – detailed notes will be added later.)*
+### 6.2.1 Physical and Logical Topologies
 
-- 6.2.1 Physical and Logical Topologies  
-- 6.2.2 WAN Topologies  
-- 6.2.3 Point-to-Point WAN Topology  
-- 6.2.4 LAN Topologies  
-- 6.2.5 Half and Full Duplex Communication  
-- 6.2.6 Access Control Methods  
-- 6.2.7 Contention-Based Access – CSMA/CD  
-- 6.2.8 Contention-Based Access – CSMA/CA  
-- 6.2.9 Check Your Understanding – Topologies  
+The data link layer prepares network data for the **physical network**, so it has to
+understand how devices are connected (topology).
+
+- **Topology** = arrangement/relationship of network devices and their
+  interconnections.
+- When describing LAN/WAN networks we talk about two views:
+
+**Physical topology**
+
+- Shows **real-world connections** and locations:
+  - Cables, switches, routers, wireless APs.
+  - Rack / room numbers, which switch a device is plugged into.
+- Common physical layouts: **point-to-point** or **star / extended star**.
+
+**Logical topology**
+
+- Shows **how frames actually travel** from one node to another.
+- Based on **interfaces** and **Layer 3 addressing** (IP networks, subnets, VLANs).
+- This is the topology that the **data link layer “sees”** when controlling access
+  to the medium and deciding how to frame traffic.
+
+> **Exam note:**  
+> Physical = cables & hardware layout.  
+> Logical = path of frames / IP networks.
 
 ---
 
-## 6.3 Data Link Frame
+### 6.2.2 WAN Topologies
 
-*(Placeholder – to be filled in as we go through the screenshots.)*
+WANs are usually built using a few common **physical WAN topologies**:
+
+**Point-to-Point**
+
+- Simplest and most common WAN topology.
+- A **permanent link between two endpoints** (two routers).
+- Easy to understand and troubleshoot.
+
+**Hub and Spoke**
+
+- WAN version of a **star** topology.
+- A **central site (hub)** connects out to multiple **branch sites (spokes)** using
+  point-to-point links.
+- Branches **cannot** communicate directly with each other; they must go **through
+  the hub**.
+
+**Mesh**
+
+- Each site is **interconnected with every other site**.
+- Provides **high availability** and redundancy.
+- Admin and physical costs are **high** (lots of links).
+- In practice you often see **partial mesh / hybrid** topologies where only some
+  sites have full-mesh links.
 
 ---
 
-## 6.4 Module Practice and Quiz
+### 6.2.3 Point-to-Point WAN Topology
 
-*(Placeholder – will be completed after doing the Module 6 quiz.)*
+Physical point-to-point topologies connect **two nodes directly**.
+
+- The two nodes do **not share the medium** with other hosts.
+- Often used with serial links and protocols like **PPP**.
+- Because frames can only travel between the two nodes, **data link protocols can
+  be simple**.
+
+Notes from the figure/text:
+
+- The node **places frames** on the media at one end and **removes frames** at the
+  other end.
+- Point-to-point topologies are **limited to two nodes**, but:
+  - Physically you may add intermediate devices in the provider’s cloud.
+  - Logically it is **still point-to-point** between the customer nodes.
+- A point-to-point link over Ethernet means the device must still **check the
+  destination** of each incoming frame to see if it’s meant for this node.
+
+---
+
+### 6.2.4 LAN Topologies
+
+In multiaccess Ethernet LANs, end devices (nodes) are usually interconnected using
+**star** or **extended star** topologies.
+
+**Star topology**
+
+- End devices connect to a **single central device**, typically a switch.
+- Easy to install, scale (add/remove devices), and troubleshoot.
+
+**Extended star**
+
+- Expands the star by **interconnecting multiple switches**.
+- Very common in modern LANs (access → distribution → core).
+- Still easy to scale and manage.
+
+**Point-to-point in LANs**
+
+- Sometimes only **two devices** are connected, e.g. two routers back-to-back.
+- Ethernet can then be used in a **point-to-point** role.
+
+**Legacy LAN topologies**
+
+- **Bus**
+  - All end systems chained along a single cable and **terminated at both ends**.
+  - No switches required; early Ethernet using coax.
+  - Inexpensive and simple, but not scalable and hard to troubleshoot.
+- **Ring**
+  - End systems connected to their neighbours in a **closed loop**.
+  - No termination needed.
+  - Used by older technologies such as **FDDI** and **Token Ring**.
+
+Figures for physical topologies: **Star, Extended Star, Bus, Ring**.
+
+> **Exam note:** Modern Ethernet LANs = star / extended star.  
+> Bus and ring are mainly **legacy** but still appear in exam questions.
+
+---
+
+### 6.2.5 Half and Full Duplex Communication
+
+Understanding **duplex** is important when talking about LAN topologies, because it
+describes the *direction* in which data can flow between two devices on a link.
+
+There are two common duplex modes:
+
+**Half-duplex communication**
+
+- Both devices can **transmit and receive**, but **not at the same time**.
+- Only **one device** is allowed to send on the shared medium at any moment.
+- Common on:
+  - WLANs
+  - Legacy Ethernet **bus topologies** using **Ethernet hubs**
+- If one side is sending, the other must wait before it can transmit.
+
+**Full-duplex communication**
+
+- Both devices can **transmit and receive simultaneously** on the link.
+- The data link layer assumes the medium is always available for both nodes.
+- **Ethernet switches** operate in full-duplex by default.
+- A switch port may fall back to **half-duplex** if it connects to a legacy hub.
+
+**Key idea**
+
+- Half-duplex **restricts** data exchange to **one direction at a time**.  
+- Full-duplex allows **send and receive at the same time** on the same link.
+- It is important that **both connected interfaces** (e.g., NIC ↔ switch port) use
+  the **same duplex setting**; a **duplex mismatch** causes inefficiency and
+  latency on the link.
+
+---
+
+### 6.2.6 Access Control Methods
+
+Ethernet LANs and WLANs are examples of **multiaccess networks**.  
+A multiaccess network is a network where **two or more end devices** try to use the
+same physical medium at the same time.
+
+Some multiaccess environments need rules to decide **how devices share** the
+medium. For shared media there are **two basic access control methods**:
+
+- **Contention-based access**
+- **Controlled access**
+
+**Contention-based access**
+
+- All nodes operate in **half-duplex**, **competing** for the right to send.
+- Only **one device** can send at a time; if more than one transmits, there is a
+  collision.
+- Examples:
+  - **CSMA/CD** – Carrier Sense Multiple Access with Collision Detection  
+    Used in **legacy bus-topology Ethernet LANs** and Ethernet hubs.
+  - **CSMA/CA** – Carrier Sense Multiple Access with Collision Avoidance  
+    Used in **wireless LANs (WLANs)**.
+
+**Controlled access**
+
+- Each node gets its **own time slot** to use the medium.
+- Access is **deterministic** (order is controlled), but this is less efficient
+  because every device must **wait for its turn**.
+- Examples of legacy networks that used controlled access:
+  - **Token Ring**
+  - **ARCNET**
+
+> Note: Modern switched Ethernet networks operate in **full-duplex** and **no longer
+> require an access method** like CSMA/CD on each link.
+
+---
+
+### 6.2.7 Contention-Based Access – CSMA/CD
+
+**CSMA/CD** (Carrier Sense Multiple Access with Collision Detection) is a
+contention-based access method used on older **half-duplex Ethernet** networks.
+
+Examples of networks that use contention-based methods:
+
+- **Wireless LAN** – uses **CSMA/CA** (collision avoidance).
+- **Legacy bus-topology Ethernet LAN** – uses **CSMA/CD**.
+- **Legacy Ethernet LANs using hubs** – also use **CSMA/CD**.
+
+These networks share one medium, so only one device can send at a time. If **two
+devices transmit simultaneously**, a **collision** occurs.
+
+**How CSMA/CD works (legacy Ethernet with a hub)**
+
+1. **PC1 wants to send a frame to PC3**
+   - PC1’s NIC first **listens to the medium** (carrier sense) to check if anyone
+     else is transmitting.
+   - If the medium is idle, PC1 **sends the Ethernet frame**.
+
+2. **The hub receives the frame**
+   - The hub is a **multiport repeater**: it regenerates the bits and **forwards**
+     them out **all other ports**.
+   - If PC2 wants to send while it is still **receiving** this frame, it must
+     **wait** until the channel is clear.
+
+3. **The hub sends the frame to all devices**
+   - Every attached device receives the bits, but only the device whose NIC sees
+     its **own data link address** (PC3) **accepts and copies** the full frame.
+   - Other devices (e.g., PC2) **ignore** the frame because it is not addressed
+     to them.
+
+If a collision is detected (signal level or data does not match), the devices stop,
+wait a random backoff time, and then **retransmit**.
+
+---
+
