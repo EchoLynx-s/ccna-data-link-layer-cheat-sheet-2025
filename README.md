@@ -620,13 +620,251 @@ addresses are rewritten at every hop for local delivery.**
 
 ### 6.3.4 LAN and WAN Frames
 
-> _Placeholder – headings kept for completeness. Content to be filled in after
-> completing this topic in NetAcad._
+Ethernet protocols are used by wired LANs, while wireless LANs use WLAN (IEEE 802.11) protocols. These were designed for multiaccess networks where many devices share the same medium.
+
+WANs have traditionally used a range of other Layer 2 protocols for point-to-point, hub-and-spoke, and full-mesh topologies. Common examples are:
+
+- Point-to-Point Protocol (PPP)  
+- High-Level Data Link Control (HDLC)  
+- Frame Relay  
+- Asynchronous Transfer Mode (ATM)  
+- X.25  
+
+These legacy WAN protocols are now increasingly being replaced by Ethernet in the WAN.
+
+In a TCP/IP network, all Layer 2 protocols work with IP at OSI Layer 3. The specific Layer 2 protocol in use depends on the logical topology and the physical media. NICs, router interfaces, and Layer 2 switches all act as nodes running the appropriate data link protocol on each link.
+
+The technology chosen (and therefore the Layer 2 protocol) is influenced by the size and geography of the network, the number of hosts, and the services that must be provided. LANs usually use high-bandwidth technologies to support many users in a relatively small area. WANs must span large geographic areas, so high-bandwidth technologies are often less cost-effective and lower bandwidth links are used.
+
+Data link layer protocols you should recognise include:
+
+- Ethernet  
+- 802.11 Wireless  
+- Point-to-Point Protocol (PPP)  
+- High-Level Data Link Control (HDLC)  
+- Frame Relay  
 
 ---
 
 ### 6.3.5 Check Your Understanding – Data Link Frame
 
-> _Placeholder – quiz questions and exact answers will be added after taking the
-> “Check Your Understanding – Data Link Frame” mini-exam._
+**Question 1 – What does the data link layer add to a Layer 3 packet to create a frame? (Choose two.)**  
+Header and trailer.
 
+**Question 2 – What is the function of the last field in a data link layer frame?**  
+To determine whether the frame experienced transmission errors.
+
+**Question 3 – Which lists the Layer 2 and Layer 3 address fields in the correct order?**  
+Destination NIC address, source NIC address, source IP address, destination IP address.
+
+**Question 4 – Which of the following are data link layer protocols? (Choose three.)**  
+802.11, PPP, and Ethernet.
+
+---
+
+### 6.4 Module Practice and Quiz
+
+---
+
+### 6.4.1 What did I learn in this module?
+
+**Purpose of the Data Link Layer**
+
+The data link layer of the OSI model (Layer 2) prepares network data for the physical network. It is responsible for NIC-to-NIC communications on the same network and for getting frames on and off the medium. Data link protocols (for example the IEEE 802 LAN/MAN standards) define how each type of media is accessed, including frame delimiting, addressing, and error detection. Router and switch interfaces encapsulate Layer 3 packets into the appropriate Layer 2 frame. Standards bodies that define open standards and protocols for the network access layer include IEEE, ITU, ISO, and ANSI.
+
+**Topologies**
+
+LAN and WAN networks use both **physical** and **logical** topologies.  
+The data link layer “sees” the logical topology when controlling access to the media. Logical topology influences the type of network framing and media-access control used.
+
+Common **physical WAN** topologies: point-to-point, hub-and-spoke, and mesh.  
+Physical **LAN** topologies: star, extended star, bus, and ring.
+
+- In multiaccess LANs, nodes connect to a central device (usually a switch) using star or extended-star physical topologies.
+- Half-duplex communication lets devices send and receive data, but not at the same time. Full-duplex allows simultaneous send/receive and requires both ends of a link to use the same duplex mode.
+- Ethernet LANs and WLANs are examples of multi-access networks, where multiple nodes share the same medium.  
+  - **Contention-based** access (CSMA/CD for legacy Ethernet, CSMA/CA for WLANs) lets many devices compete for the medium.  
+  - **Controlled** access (such as legacy Token Ring or ARCNET) gives each node a turn to use the medium.
+
+**Data Link Frame**
+
+The data link layer encapsulates the Layer 3 packet (usually IPv4/IPv6) for transport over the local medium by adding a **header** and **trailer** to create a frame.
+
+- There is no single universal frame format; each data link protocol defines its own fields to match the media and topology.
+- All frame types include three basic parts: **header**, **data**, and **trailer**.
+
+Generic frame header/trailer fields:
+
+- **Frame start/stop flags** – mark the beginning and end of the frame.
+- **Addressing** – source and destination data link (Layer 2) addresses; used only for local delivery on the shared medium.
+- **Type** – identifies the Layer 3 protocol inside the data field (for example IPv4 vs IPv6).
+- **Control** – may signal special handling such as QoS.
+- **Data** – the encapsulated Layer 3 packet (header + payload).
+- **Error detection** – trailer field (for example FCS/CRC) that lets the receiver detect whether the frame experienced transmission errors.
+
+Layer 2 addresses are physical addresses used only within the local network segment. As the packet moves host-to-router, router-to-router, and router-to-host, each hop re-encapsulates the same Layer 3 packet into a new Layer 2 frame with new source and destination MAC addresses appropriate for that link.
+
+Data link layer protocols include Ethernet, 802.11 Wireless, PPP, HDLC, and Frame Relay.
+
+---
+
+### 6.4.2 Module Quiz – Data Link Layer (Q1–Q14)
+
+---
+
+#### Question 1  
+**What identifier is used at the data link layer to uniquely identify an Ethernet device?**
+
+**Correct answer:** `MAC address`
+
+**Why?**  
+A **MAC address** is the physical address burned into the NIC and is used at **Layer 2** to uniquely identify Ethernet devices on the local network.
+
+---
+
+#### Question 2  
+**What attribute of a NIC would place it at the data link layer of the OSI model?**
+
+**Correct answer:** `MAC address`
+
+**Why?**  
+The presence of a **MAC address** is what ties the NIC to **Layer 2 (data link)**. IP addresses belong to Layer 3, ports belong to Layer 4.
+
+---
+
+#### Question 3  
+**Which two engineering organizations define open standards and protocols that apply to the data link layer? (Choose two.)**
+
+**Correct answers:**  
+- `Institute of Electrical and Electronics Engineers (IEEE)`  
+- `International Telecommunication Union (ITU)`
+
+**Why?**  
+For the data link layer, standards are largely defined by **IEEE** (e.g., 802.x) and **ITU**. (Others like IANA or ISOC have roles at different layers.)
+
+---
+
+#### Question 4  
+**What is true concerning physical and logical topologies?**
+
+**Correct answer:** `Logical topologies refer to how a network transfers data between devices.`
+
+**Why?**  
+- **Physical topology** = how devices and cables are physically arranged.  
+- **Logical topology** = **how data flows** between devices (who talks to whom and in what pattern).
+
+---
+
+#### Question 5  
+**What method is used to manage contention-based access on a wireless network?**
+
+**Correct answer:** `CSMA/CA`
+
+**Why?**  
+802.11 WLANs use **CSMA/CA (Carrier Sense Multiple Access with Collision Avoidance)** because wireless devices **cannot reliably detect collisions**. They try to **avoid** them using waiting/backoff and acknowledgments.
+
+---
+
+#### Question 6  
+**A technician has been asked to develop a physical topology for a network that provides a high level of redundancy. Which physical topology requires that every node is attached to every other node on the network?**
+
+**Correct answer:** `Mesh`
+
+**Why?**  
+In a **mesh topology**, every node has a direct link to every other node. This creates **maximum redundancy** – multiple paths exist if one link fails.
+
+---
+
+#### Question 7  
+**Which statement describes the half-duplex mode of data transmission?**
+
+**Correct answer:** `Data that is transmitted over the network flows in one direction at a time.`
+
+**Why?**  
+**Half-duplex** means both sides can send, but **not simultaneously**. They must take turns using the medium.
+
+---
+
+#### Question 8  
+**Which is a function of the Logical Link Control (LLC) sublayer?**
+
+**Correct answer:** `To identify which network layer protocol is being used`
+
+**Why?**  
+The **LLC sublayer** tells the data link layer **which Layer-3 protocol** (IPv4, IPv6, etc.) is encapsulated so it can be handed to the correct upper-layer process.
+
+---
+
+#### Question 9  
+**Which data link layer media access control method does Ethernet use with legacy Ethernet hubs?**
+
+**Correct answer:** `CSMA/CD`
+
+**Why?**  
+Legacy hubs create a **shared half-duplex segment**. Ethernet on such media uses **CSMA/CD (Collision Detection)** to detect collisions when two devices transmit at the same time.
+
+---
+
+#### Question 10  
+**What are the two sublayers of the OSI model data link layer? (Choose two.)**
+
+**Correct answers:**  
+- `MAC`  
+- `LLC`
+
+**Why?**  
+The data link layer is split into:  
+- **MAC (Media Access Control)** – addressing, media access.  
+- **LLC (Logical Link Control)** – identifies the upper-layer protocol and manages control information.
+
+---
+
+#### Question 11  
+**Which layer of the OSI model is responsible for specifying the encapsulation method used for specific types of media?**
+
+**Correct answer:** `Data link`
+
+**Why?**  
+The **data link layer** defines **frame formats** and encapsulation methods (Ethernet frame, 802.11 frame, PPP frame, etc.) for each type of physical media.
+
+---
+
+#### Question 12  
+**What type of physical topology can be created by connecting all Ethernet cables to a central device?**
+
+**Correct answer:** `Star`
+
+**Why?**  
+With all devices connected to a **single central device** (switch), the physical layout is a **star topology**.
+
+---
+
+#### Question 13  
+**What are two services performed by the data link layer of the OSI model? (Choose two.)**
+
+Options (paraphrased):  
+1. Builds a MAC address table  
+2. Determines the path to forward packets  
+3. Provides media access control and performs error detection  
+4. Fragments data packets into the MTU size  
+5. Accepts Layer 3 packets and encapsulates them into frames  
+
+**Correct answers:**  
+- `3. Provides media access control and performs error detection.`  
+- `5. Accepts Layer 3 packets and encapsulates them into frames.`
+
+**Why?**  
+Layer 2 is responsible for:  
+- **Media access control + error detection** (FCS/CRC)  
+- **Encapsulating Layer-3 packets into frames** for transmission.  
+MAC tables and routing decisions are device-specific (switch/router), not generic L2 services.
+
+---
+
+#### Question 14  
+**Although CSMA/CD is still a feature of Ethernet, why is it no longer necessary?**
+
+**Correct answer:** `The use of full-duplex capable Layer 2 switches`
+
+**Why?**  
+Modern Ethernet uses **full-duplex, switch-based links**. Each link is point-to-point with no shared medium, so **collisions cannot occur**. Because there are no collisions, **CSMA/CD’s collision detection is effectively unnecessary**, even though it remains in the standard.
