@@ -468,3 +468,39 @@ wait a random backoff time, and then **retransmit**.
 
 ---
 
+### 6.2.8 Contention-Based Access – CSMA/CA
+
+Another form of CSMA used by **IEEE 802.11 WLANs** is **CSMA/CA (Carrier Sense Multiple Access with Collision Avoidance)**.
+
+- CSMA/CA uses a method similar to CSMA/CD to check if the medium is free, but it adds **extra mechanisms** to help avoid collisions.
+- In a wireless environment it may not be possible to reliably detect collisions on the air.
+- Instead of detecting collisions, CSMA/CA tries to **avoid** them:
+  - A device waits for a clear channel before transmitting.
+  - Each transmission includes a **time duration** field indicating how long the medium will be in use for that frame.
+  - All other wireless devices that hear the frame learn how long the medium will be unavailable and defer their own transmissions for that period.
+
+In the example figure, if host **A** is receiving a wireless frame from the access point, hosts **B** and **C** also see the frame and know how long the channel will be busy.
+
+After a wireless device sends an 802.11 frame, the receiver sends an **acknowledgment (ACK)** so that the sender knows the frame arrived correctly.
+
+> Note: Whether it is an Ethernet LAN using hubs or a WLAN, contention-based systems **do not scale well** under heavy use, because many devices are competing for the same medium.  
+> Ethernet LANs built with **switches** are different: switches and host NICs operate in **full-duplex**, so modern switched Ethernet does **not** use a contention-based access method.
+
+---
+
+### 6.2.9 Check Your Understanding – Topologies (Quiz Q&A)
+
+**Q1. Which topology displays networking device Layer 3 IP addresses?**  
+**A:** Logical topology
+
+**Q2. What kind of network would use point-to-point, hub and spoke, or mesh topologies?**  
+**A:** WAN
+
+**Q3. Which LAN topology is a hybrid topology?**  
+**A:** Extended star
+
+**Q4. Which duplex communication method is used in WLANs?**  
+**A:** Half-duplex
+
+**Q5. Which media access control method is used in legacy Ethernet LANs?**  
+**A:** Carrier sense multiple access / collision detection (**CSMA/CD**)
