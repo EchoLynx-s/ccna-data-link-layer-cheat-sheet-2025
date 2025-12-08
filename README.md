@@ -504,3 +504,110 @@ After a wireless device sends an 802.11 frame, the receiver sends an **acknowled
 
 **Q5. Which media access control method is used in legacy Ethernet LANs?**  
 **A:** Carrier sense multiple access / collision detection (**CSMA/CD**)
+
+
+---
+
+## 6.3 Data Link Frame
+
+### 6.3.1 The Frame
+
+Here the focus shifts from “which path do we use?” to “how do we actually move bits over this link?”.
+
+- The **data link layer** takes a Layer 3 PDU (usually an IPv4 or IPv6 packet) and
+  wraps it in a **frame** that can travel over the local medium.
+- Every data link protocol (Ethernet, WLAN, PPP, etc.) defines its own frame
+  format, but each frame always has three basic parts:
+  **header**, **data**, and **trailer**.
+- The header and trailer contain **control information** used for delivery on the
+  local link: addressing, type of payload, QoS, error detection, etc.
+- There is **no single universal frame format**. Links that are “fragile”
+  (wireless, satellite, noisy environments) need more control information, so
+  their headers/trailers are larger, which increases overhead and can reduce
+  throughput.
+- Data link protocols are responsible for **NIC-to-NIC communication inside the
+  same network**, not for end-to-end routing across multiple networks.
+
+---
+
+### 6.3.2 Frame Fields
+
+Framing breaks the continuous bit stream into recognizable chunks with structure
+that devices can understand.
+
+Generic frame fields:
+
+- **Frame start / Frame stop indicator flags** – Mark the beginning and end of
+  the frame so the receiver knows where to start and stop reading.
+- **Addressing** – Source and destination **Layer 2 (physical/MAC) addresses**
+  on the medium.
+- **Type** – Identifies which **Layer 3 protocol** is carried in the data field
+  (for example IPv4 vs IPv6).
+- **Control** – Optional field for flow control and special services such as
+  **quality of service (QoS)**.
+- **Data** – The actual payload (the encapsulated network-layer packet or any
+  other upper-layer data).
+- **Error Detection** – Trailer field used for **error checking**, usually a
+  **Frame Check Sequence (FCS)** value computed with a **cyclic redundancy check
+  (CRC)**.
+
+On transmit, the sender calculates the CRC over the frame contents and places
+the result in the FCS. On receive, the NIC recalculates the CRC and compares it
+with the FCS to decide whether the frame was damaged in transit.
+
+---
+
+### 6.3.3 Layer 2 Addresses
+
+Layer 2 addresses are how frames find their way across a **single local link**.
+
+- Data link addressing is often called **physical addressing** and usually means
+  **MAC addresses**.
+- The destination MAC address is placed at the **start of the frame header** so
+  the NIC can quickly decide whether to accept or ignore the frame. The header
+  also carries the **source** MAC address.
+- Unlike Layer 3 (IP) addresses, Layer 2 addresses:
+  - **Do not indicate the network** where a device lives.
+  - **Do not change** if the device is moved to another IP network.
+  - Are **only valid locally** on the current link or LAN segment.
+
+As an IP packet travels:
+
+- **Host-to-Router** – The host encapsulates the IP packet in a frame whose
+  source MAC is the host NIC and destination MAC is the default gateway (R1).
+
+  <img width="758" height="414" alt="image" src="https://github.com/user-attachments/assets/9fff9b8b-8f72-4449-ae20-15be05d6f71d" />
+  
+
+- **Router-to-Router** – Each router de-encapsulates the incoming frame, looks at
+  the **IP header** to decide the next hop, then re-encapsulates the IP packet
+  in a **new frame** with new source/destination MAC addresses for the next link.
+
+  <img width="761" height="403" alt="image" src="https://github.com/user-attachments/assets/e9bfcffd-1be6-4fa4-8bbe-58ae0f3ef977" />
+  
+
+- **Router-to-Host** – On the final link, the router sends a frame whose
+  destination MAC is the target host and whose source MAC is the router’s
+  outgoing interface.
+
+  <img width="780" height="411" alt="image" src="https://github.com/user-attachments/assets/10bd5622-e1d4-4cd3-ac4c-b7134d0d487c" />
+
+
+Key idea:  
+**Layer 3 addresses stay the same from source to final destination, while Layer 2
+addresses are rewritten at every hop for local delivery.**
+
+---
+
+### 6.3.4 LAN and WAN Frames
+
+> _Placeholder – headings kept for completeness. Content to be filled in after
+> completing this topic in NetAcad._
+
+---
+
+### 6.3.5 Check Your Understanding – Data Link Frame
+
+> _Placeholder – quiz questions and exact answers will be added after taking the
+> “Check Your Understanding – Data Link Frame” mini-exam._
+
