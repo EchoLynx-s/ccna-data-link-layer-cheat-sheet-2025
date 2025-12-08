@@ -29,9 +29,28 @@ I use this repo to revise:
   - [6.1.4 Data Link Layer Standards](#614-data-link-layer-standards)  
   - [6.1.5 Check Your Understanding – Purpose of the Data Link Layer](#615-check-your-understanding--purpose-of-the-data-link-layer)
 
-- 6.2 Topologies *(to be filled in)*  
-- 6.3 Data Link Frame *(to be filled in)*  
-- 6.4 Module Practice and Quiz *(to be filled in)*
+- [6.2 Topologies](#62-topologies)  
+  - [6.2.1 Physical and Logical Topologies](#621-physical-and-logical-topologies)  
+  - [6.2.2 WAN Topologies](#622-wan-topologies)  
+  - [6.2.3 Point-to-Point WAN Topology](#623-point-to-point-wan-topology)  
+  - [6.2.4 LAN Topologies](#624-lan-topologies)  
+  - [6.2.5 Half and Full Duplex Communication](#625-half-and-full-duplex-communication)  
+  - [6.2.6 Access Control Methods](#626-access-control-methods)  
+  - [6.2.7 Contention-Based Access – CSMA/CD](#627-contention-based-access--csmacd)  
+  - [6.2.8 Contention-Based Access – CSMA/CA](#628-contention-based-access--csmaca)  
+  - [6.2.9 Check Your Understanding – Topologies](#629-check-your-understanding--topologies)
+
+- [6.3 Data Link Frame](#63-data-link-frame)  
+  - [6.3.1 The Frame](#631-the-frame)  
+  - [6.3.2 Frame Fields](#632-frame-fields)  
+  - [6.3.3 Layer 2 Addresses](#633-layer-2-addresses)  
+  - [6.3.4 LAN and WAN Frames](#634-lan-and-wan-frames)  
+  - [6.3.5 Check Your Understanding – Data Link Frame](#635-check-your-understanding--data-link-frame)
+
+- [6.4 Module Practice and Quiz](#64-module-practice-and-quiz)  
+  - [6.4.1 What did I learn in this module?](#641-what-did-i-learn-in-this-module)  
+  - [6.4.2 Module Quiz – Data Link Layer](#642-module-quiz--data-link-layer)
+
 
 ---
 
