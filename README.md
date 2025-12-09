@@ -1360,3 +1360,625 @@ run into challenges such as:
 
 This lab helps build intuition for reading MAC tables and understanding how frames are delivered on a
 switched Ethernet network.
+
+---
+
+### 7.4 Switch Speeds and Forwarding Methods
+
+Switches use their MAC address tables plus different **forwarding methods**, **buffering strategies**, and **port settings** (speed / duplex / auto-MDIX) to decide how fast and how reliably frames move through the network.
+
+---
+
+### 7.4.1 Frame Forwarding Methods on Cisco Switches
+
+Cisco switches use the MAC address table to decide **which port** should forward a frame.  
+There are **two main forwarding methods**:
+
+#### Store-and-forward switching
+
+- The switch **receives the entire frame** before forwarding.
+- It calculates the **CRC** (Cyclic Redundancy Check) over all the bits to see if the frame has errors.
+- If the CRC is **invalid**, the frame is **discarded** and not forwarded.
+- If the frame is **valid**, the switch looks up the **destination MAC address** in the MAC table and forwards the frame out the matched port.
+
+**Advantages:**
+
+- Corrupted frames are dropped before they consume bandwidth on the outgoing link.
+- Required for **QoS (Quality of Service)** features on converged networks, where traffic such as **VoIP** needs priority over web browsing or other best-effort data.
+
+#### Cut-through switching
+
+- The switch **starts forwarding** the frame **before the full frame is received**.
+- It only needs to buffer enough of the frame to read the **destination MAC address**.
+- Once the destination MAC is known and the outgoing port is identified, the switch forwards the frame immediately.
+- There is **no CRC check**; errored frames may be forwarded.
+
+**Main benefit:**  
+Much **lower latency**, because forwarding begins as soon as the destination MAC is read.
+
+---
+
+### 7.4.2 Cut-Through Switching
+
+In cut-through mode, the switch **acts on incoming data as soon as it can see the destination MAC**:
+
+1. The frame begins arriving on the ingress port.
+2. After the **preamble and SFD**, the switch reads the **first 6 bytes** of the header (destination MAC).
+3. It looks up this MAC address in its switching/MAC table.
+4. It immediately forwards the frame to the selected outbound port, **without waiting** for the rest of the bits.
+5. The switch **does not check** the FCS for errors.
+
+Cut-through switching has **two variants**:
+
+#### Fast-forward switching
+
+- Offers the **lowest latency**.
+- The switch forwards the frame **as soon as the destination MAC is read**, with no additional delay.
+- Errored packets can be forwarded because no error checking is done.
+- Latency is measured from the **first bit received to the first bit transmitted**.
+- This is the **typical** cut-through method.
+
+#### Fragment-free switching
+
+- The switch **stores the first 64 bytes** of the frame before forwarding.
+- Most collisions and many physical-layer errors show up in the **first 64 bytes**, so checking this portion reduces the chance of forwarding corrupted frames.
+- Considered a **compromise** between:
+  - **Store-and-forward** (high latency, high integrity), and
+  - **Fast-forward cut-through** (low latency, lower integrity).
+- Provides **lower latency** than full store-and-forward, but **better error protection** than pure fast-forward.
+
+Some switches can **dynamically change** behavior:
+
+- Operate in cut-through mode **per port** until a user-defined **error threshold** is exceeded.
+- If too many errors occur, the port automatically switches to **store-and-forward**.
+- When error rates drop again, the port may revert back to **cut-through**.
+
+---
+
+### 7.4.3 Memory Buffering on Switches
+
+Switches may need to **buffer frames in memory** before forwarding, for example:
+
+- When the outgoing port is **busy or congested**.
+- When frames arrive faster than they can be transmitted.
+
+There are **two main memory buffering methods**:
+
+#### Port-based memory
+
+- Each port has its **own queue** (or queues) linked to that port’s incoming/outgoing traffic.
+- Frames are stored in the port’s queue and transmitted **in order**:
+  - An outgoing port only sends a frame when **all earlier frames** in that port’s queue have been sent.
+- A single **busy destination port** can delay **all frames** in its queue, even if some frames could be sent to different, idle ports.
+- Delay is tied to **per-port queues**.
+
+#### Shared memory
+
+- All frames go into a **common memory buffer** shared by all ports.
+- Buffer space is **dynamically allocated** to ports as needed.
+- A frame can be **received on one port** and then **transmitted on another** without moving between distinct per-port queues.
+- This method:
+  - Makes it easier to handle **bursty traffic**.
+  - Allows **larger frames** to be stored with **fewer drops**.
+  - Is especially useful for **asymmetric switching**, such as a **10 Gbps server** connected to many **1 Gbps** client ports.
+
+---
+
+### 7.4.4 Duplex and Speed Settings
+
+Each switch port has two key settings:
+
+- **Speed (bandwidth)** – 10, 100, 1000 Mbps, 10 Gbps, etc.
+- **Duplex mode** – how data flows on the link.
+
+It is critical that the **speed and duplex** settings on both ends of a link **match**, otherwise performance problems occur.
+
+#### Duplex modes
+
+- **Full-duplex**
+  - Both ends of the connection can **send and receive simultaneously**.
+  - No collisions on the link.
+- **Half-duplex**
+  - Only **one side can transmit at a time**.
+  - Uses mechanisms like CSMA/CD to avoid or handle collisions.
+
+#### Autonegotiation
+
+- Available on most Ethernet switches and NICs.
+- Two devices automatically negotiate:
+  - The **highest common speed**, and
+  - The **best duplex mode** (full if both support it).
+- Example:  
+  PC-A connects to switch S2. Both support **10 or 100 Mbps** and **half/full duplex**. With autonegotiation enabled, they choose **100 Mbps, full-duplex**.
+
+**Important notes:**
+
+- Most Cisco switches and Ethernet NICs **default** to autonegotiation for speed and duplex.
+- **Gigabit Ethernet** ports operate **only in full-duplex**.
+
+#### Duplex mismatch
+
+A very common performance issue on 10/100 Mbps links:
+
+- Occurs when **one side** of the link is configured for **full-duplex** and the **other side** is **half-duplex**.
+- The full-duplex side sends whenever it wants; the half-duplex side must wait for a clear link → results in **many collisions** and poor performance.
+- Causes:
+  - One side reset and renegotiated, the other left fixed.
+  - Manual reconfiguration on just one side.
+
+**Best practice:**
+
+- Either **both sides autonegotiate**, or
+- **Both sides are manually set** to identical speed and duplex (usually full-duplex).
+
+---
+
+### 7.4.5 Auto-MDIX
+
+Historically, you had to choose the **correct cable type**:
+
+- **Straight-through cable**
+  - Used to connect **unlike devices**:
+    - Switch ↔ Host
+    - Switch ↔ Router
+- **Crossover cable**
+  - Used to connect **like devices**:
+    - Switch ↔ Switch
+    - Host ↔ Host
+    - Router ↔ Router  
+  - A **direct router ↔ host** connection also required a crossover cable.
+
+#### Auto-MDIX (Automatic Medium-Dependent Interface Crossover)
+
+Modern switch ports often support **auto-MDIX**:
+
+- The switch **automatically detects**:
+  - The type of device on the other end, and
+  - Whether a **straight-through** or **crossover** cable is plugged in.
+- It then **reconfigures the transmit/receive pairs internally** so the link works correctly.
+
+**Result:**
+
+- You can plug in **either cable type** (straight-through or crossover), and the port will work.
+- Auto-MDIX is supported on most switches for **10/100/1000 Mbps copper** ports.
+
+---
+### 7.4.6 Check Your Understanding – Switch Speeds and Forwarding Methods
+
+#### Question 1  
+**What are two methods for switching data between ports on a switch? (Choose two.)**
+
+Options:  
+- Cut-through switching  
+- Store-and-forward switching  
+- Cut-off switching  
+- Store-and-supply switching  
+- Store-and-restore switching  
+
+**Correct answers:** `Cut-through switching`, `Store-and-forward switching`
+
+**Why?**  
+Cisco switches use exactly two frame forwarding methods:  
+
+- **Store-and-forward** – the switch receives the *entire* frame, checks it with CRC, and only forwards it if there are no errors.  
+- **Cut-through** – the switch begins forwarding as soon as it has read the destination MAC address, without waiting for the rest of the frame.  
+
+The other answer choices are not real switching methods and are just distractors.
+
+---
+
+#### Question 2  
+**Which switching method can be implemented using fast-forward switching or fragment-free switching?**
+
+Options:  
+- Store-and-forward switching  
+- Store-and-restore switching  
+- Cut-off switching  
+- Cut-through switching  
+
+**Correct answer:** `Cut-through switching`
+
+**Why?**  
+The two variants described in the module:  
+
+- **Fast-forward switching**  
+- **Fragment-free switching**  
+
+are both *types of cut-through switching*. They are not store-and-forward modes, so the umbrella term that fits both is **cut-through switching**.
+
+---
+
+#### Question 3  
+**Which two types of memory buffering techniques are used by switches? (Choose two.)**
+
+Options:  
+- Short-term memory buffering  
+- Port-based memory buffering  
+- Shared memory buffering  
+- Long-term memory buffering  
+
+**Correct answers:** `Port-based memory buffering`, `Shared memory buffering`
+
+**Why?**  
+
+- **Port-based memory buffering** – each port has its own queue; frames are stored per-port and leave in order when the port is free. A busy destination port can delay all frames in that queue.  
+- **Shared memory buffering** – all frames go into a common buffer; the switch dynamically associates buffered frames with the correct outgoing port. This is good for handling bursts and asymmetric traffic.
+
+“Short-term” and “long-term” memory buffering are not real Cisco terms used in this context.
+
+---
+
+#### Question 4  
+**What feature automatically negotiates the best speed and duplex setting between interconnecting devices?**
+
+Options:  
+- Autobots  
+- Autonegotiation  
+- Autotune  
+- Auto-MDIX  
+
+**Correct answer:** `Autonegotiation`
+
+**Why?**  
+**Autonegotiation** allows two Ethernet devices to automatically agree on the highest common **speed** and **duplex** (e.g., 100 Mbps full-duplex).  
+
+- **Auto-MDIX** automatically detects whether the cable should logically behave as crossover or straight-through (it fixes TX/RX pin roles), but it does *not* negotiate speed/duplex.  
+- “Autobots” and “Autotune” are just joke distractors.
+
+
+---
+
+# 7.5 Module Practice and Quiz – Ethernet Switching
+
+This section wraps up **CCNA – Module 7: Ethernet Switching** with a short
+summary of what I learned and the graded quiz Q&A.
+
+---
+
+## 7.5.1 What did I learn in this module?
+
+### Ethernet Frame
+
+- Ethernet operates at **Layer 2 (data link)** and **Layer 1 (physical)**.
+- The Ethernet standards define:
+  - The **Layer 2 protocols** (LLC + MAC sublayers).
+  - The **Layer 1 technologies** (signaling, media, connectors, bandwidth).
+- The **MAC sublayer** is responsible for:
+  - Data encapsulation into an Ethernet **frame**.
+  - Ethernet addressing (source and destination MAC).
+  - Error detection with **FCS** (Frame Check Sequence).
+- Modern Ethernet LANs typically use **switches running in full-duplex**, which
+  removes collisions.
+- Main Ethernet frame fields (in order):
+  1. **Preamble + Start Frame Delimiter (SFD)** – synchronization, “get ready”.
+  2. **Destination MAC address** – who should receive the frame.
+  3. **Source MAC address** – who sent the frame.
+  4. **EtherType / Length** – which Layer 3 protocol is inside (IPv4, IPv6, ARP…)
+  5. **Data** – the encapsulated Layer 3 PDU.
+  6. **FCS** – CRC value used to detect errors.
+
+---
+
+### Ethernet MAC Address
+
+- Number systems used in networking:
+  - **Binary (base 2)** – bits.
+  - **Decimal (base 10)** – human-friendly.
+  - **Hexadecimal (base 16)** – compact representation of binary.
+- Hex uses digits **0–9** and letters **A–F**.
+- A **MAC address is 48 bits**, usually written as **12 hex digits**  
+  (e.g. `00-60-2F-3A-07-BC`).
+- Because **1 hex digit = 4 bits**, 48 bits → 12 hex digits (6 bytes).
+- MAC addressing identifies the **physical source and destination NICs** on the
+  local network segment (Layer 2 of OSI).
+- The first 24 bits (first 6 hex digits) form the **OUI (Organizationally
+  Unique Identifier)** assigned by the IEEE to a vendor.
+  - Example: `00-60-2F` assigned to Cisco.
+- The last 24 bits (last 6 hex digits) are **vendor-assigned**, unique per
+  interface.
+- Ethernet uses **different MAC addresses for**:
+  - **Unicast** – one-to-one.
+  - **Broadcast** – one-to-all on the LAN (`FF-FF-FF-FF-FF-FF`).
+  - **Multicast** – one-to-many (group of interested receivers).
+
+---
+
+### The MAC Address Table
+
+- A **Layer 2 switch** makes forwarding decisions **only using MAC addresses**.
+- It is **protocol-agnostic** – it doesn’t care if the payload is IPv4, IPv6,
+  ARP, etc.
+- The switch maintains a **MAC address table** (a.k.a. **CAM table**) that maps:
+  - **MAC address ↔ switch port**.
+- **Learning process (source MAC):**
+  - For every incoming frame, the switch reads the **source MAC** + **ingress
+    port**.
+  - If the MAC is **not in the table**, it adds a new entry.
+  - If it **already exists**, it simply **refreshes the aging timer**  
+    (default about 5 minutes).
+  - If the same MAC appears on a different port, the switch **updates the
+    entry** with the new port (it “moves” the host).
+- **Forwarding process (destination MAC):**
+  - If **destination MAC is in the table** → forward frame **out that single
+    port** (filtering).
+  - If **destination MAC is unknown** → **flood** out all ports except the
+    incoming port (unknown unicast).
+  - If **destination MAC is broadcast or multicast** → **flood** out all ports
+    except the incoming port.
+
+---
+
+### Switch Speeds and Forwarding Methods
+
+- Two main forwarding methods on Cisco switches:
+
+  1. **Store-and-forward switching**
+     - Switch **receives the entire frame**, runs a **CRC/FCS check**, and only
+       forwards **valid** frames.
+     - Looks up destination MAC after FCS is verified.
+     - Better **reliability and QoS**, can drop errored frames before they
+       consume bandwidth.
+
+  2. **Cut-through switching**
+     - Switch starts forwarding **as soon as it has read the destination MAC**
+       (first 6 bytes after preamble), without waiting for the whole frame.
+     - **Lower latency**, but **no FCS check** (errors are forwarded).
+     - Two common variants:
+       - **Fast-forward** – forwards immediately after destination MAC is read.
+       - **Fragment-free** – buffers the first **64 bytes** to avoid
+         collision-related fragments, then forwards (compromise between speed
+         and integrity).
+
+- **Memory buffering** methods:
+
+  - **Port-based memory**
+    - Each port has its own **queue**.
+    - Frames exit in **FIFO order** per port.
+    - A busy destination port can delay all frames in its queue, even if some
+      could go to free ports.
+
+  - **Shared memory**
+    - All frames go into a **common buffer** shared by ports.
+    - Buffer space is allocated dynamically to ports as needed.
+    - A frame can be received on one port and transmitted on another **without
+      being copied to a new queue**.
+    - Better for **asymmetric switching** (different port speeds, e.g. 1 Gbps
+      uplink ↔ 100 Mbps clients).
+
+- **Duplex settings** on Ethernet links:
+  - **Full-duplex** – both ends can send and receive **simultaneously**; no
+    collisions.
+  - **Half-duplex** – only one side sends at a time; uses contention methods
+    (e.g. CSMA/CD) and is more prone to collisions.
+
+- **Autonegotiation**
+  - Allows two devices to automatically agree on **best common speed and
+    duplex**.
+  - Best practice: both sides should either **have autonegotiation enabled** or
+    **both disabled and manually matched**.
+
+- **Duplex mismatch**
+  - One side full-duplex, the other half-duplex.
+  - Causes collisions, poor performance, and weird network issues.
+  - Common cause: misconfigured manual settings or failed autonegotiation.
+
+- **Auto-MDIX (Automatic Medium-Dependent Interface Crossover)**
+  - Switch port automatically detects whether the attached cable is
+    **straight-through or crossover** and adjusts the pinouts internally.
+  - Modern switches with auto-MDIX let you connect any copper cable to most
+    Fast/Gigabit ports without worrying about crossover vs straight-through.
+
+---
+
+## 7.5.2 Module Quiz – Ethernet Switching (Q&A)
+
+### Q1
+
+**Question:**  
+Which two characteristics describe Ethernet technology? (Choose two.)
+
+**Correct answers:**
+
+- It uses unique MAC addresses to ensure that data is sent to the appropriate destination.  
+- It is supported by IEEE 802.3 standards.
+
+**Explanation:**  
+Ethernet is defined by **IEEE 802.3** and uses **48-bit MAC addresses** to
+uniquely identify devices on the LAN so frames can be delivered to the right
+NIC. The ring topology and 16 Mbps values are associated with **Token Ring**
+(IEEE 802.5), not Ethernet.
+
+---
+
+### Q2
+
+**Question:**  
+What statement describes a characteristic of MAC addresses?
+
+**Correct answer:**  
+- They must be globally unique.
+
+**Explanation:**  
+MAC addresses are **hardware-level identifiers** assigned by vendors. The OUI
+prefix ensures that each vendor uses a unique range so two devices should never
+ship with the same MAC. A MAC is **48 bits**, not 32, and it is a **Layer 2**
+address, not part of a Layer 3 PDU.
+
+---
+
+### Q3
+
+**Question:**  
+What is the special value assigned to the first 24 bits of a multicast MAC
+address transporting an IPv4 packet?
+
+**Correct answer:**  
+- `01-00-5E`
+
+**Explanation:**  
+For IPv4 multicast, Ethernet uses a special **multicast MAC prefix** of
+`01-00-5E`. The remaining 24 bits are derived from the lower bits of the IPv4
+multicast address. `FF-FF-FF-FF-FF-FF` is the **broadcast MAC**, not multicast.
+
+---
+
+### Q4
+
+**Question:**  
+What will a host on an Ethernet network do if it receives a frame with a
+unicast destination MAC address that does not match its own MAC address?
+
+**Correct answer:**  
+- It will discard the frame.
+
+**Explanation:**  
+Each NIC checks the **destination MAC** in every frame it sees. If the address
+is **unicast and not equal** to its own MAC (and not a relevant multicast
+group), it simply **drops the frame** and does not pass it up the stack.
+
+---
+
+### Q5
+
+**Question:**  
+Which network device makes forwarding decisions based on the destination MAC
+address that is contained in the frame?
+
+**Correct answer:**  
+- Switch
+
+**Explanation:**  
+A **Layer 2 switch** uses its **MAC address table** to decide which **egress
+port** should be used to forward a frame. Hubs and repeaters just repeat bits
+to all ports, and routers make decisions based on **Layer 3 (IP) addresses**.
+
+---
+
+### Q6
+
+**Question:**  
+Which network device has the primary function to send data to a specific
+destination based on the information found in the MAC address table?
+
+**Correct answer:**  
+- Switch
+
+**Explanation:**  
+Again, this describes exactly what a **switch** does: consult the MAC table
+(learned from source MACs) and **forward frames only to the correct port**. A
+router uses an IP routing table, not a MAC table; hubs and modems don’t keep
+MAC tables at all.
+
+---
+
+### Q7
+
+**Question:**  
+Which function or operation is performed by the LLC sublayer?
+
+**Correct answer:**  
+- It communicates with upper protocol layers.
+
+**Explanation:**  
+The **LLC (Logical Link Control)** sublayer (IEEE 802.2) acts as the **interface
+between Layer 2 and the upper layers**. It identifies which **network layer
+protocol** (IPv4, IPv6, IPX, etc.) is encapsulated and provides a consistent
+service to them. The **MAC sublayer** is the one responsible for media access
+control and low-level encapsulation on the physical medium.
+
+---
+
+### Q8
+
+**Question:**  
+What happens to runt frames received by a Cisco Ethernet switch?
+
+**Correct answer:**  
+- The frame is dropped.
+
+**Explanation:**  
+A **runt frame** is **smaller than the minimum 64-byte Ethernet frame size**.
+Cisco switches running store-and-forward check the **FCS and length**; frames
+that are too short (often caused by collisions or errors) are **discarded** and
+never forwarded.
+
+---
+
+### Q9
+
+**Question:**  
+What addressing information is recorded by a switch to build its MAC address
+table?
+
+**Correct answer:**  
+- The source Layer 2 address of incoming frames.
+
+**Explanation:**  
+Switches **learn MAC addresses from the source MAC** of frames that **enter a
+port**. They then associate that MAC with the ingress port in the MAC table.
+Destination MACs are only used when **forwarding**, not for learning.
+
+---
+
+## Question 10  
+**Question:** What is auto-MDIX?  
+
+**Correct answer:**  
+- A feature that detects Ethernet cable type  
+
+**Explanation:**  
+Auto-MDIX (**automatic medium-dependent interface crossover**) lets a switch port automatically detect whether the attached cable is straight-through or crossover and internally swap pairs if needed. This removes the need to choose the correct cable type manually.
+
+---
+
+## Question 11  
+**Question:** What type of address is `01-00-5E-0A-00-02`?  
+
+**Correct answer:**  
+- An address that reaches a **specific group of hosts**  
+
+**Explanation:**  
+MAC addresses that start with `01-00-5E` are **IPv4 multicast MAC addresses**. Multicast traffic is delivered to a *group* of interested hosts, not to every host (broadcast) and not to just one host (unicast).
+
+---
+
+## Question 12  
+**Question:** Which statement is true about MAC addresses?  
+
+**Correct answer:**  
+- The first three bytes are used by the vendor-assigned OUI.  
+
+**Explanation:**  
+A MAC address is 48 bits (6 bytes).  
+- The **first 3 bytes (24 bits)** are the **OUI – Organizationally Unique Identifier**, assigned to the vendor by IEEE.  
+- The **last 3 bytes** are a unique value assigned by that vendor to each NIC.
+
+---
+
+## Question 13  
+**Question:** What are the two sizes (minimum and expected maximum) of an Ethernet frame? (Choose two.)  
+
+**Correct answers:**  
+- 64 bytes  
+- 1518 bytes  
+
+**Explanation:**  
+Standard Ethernet (without VLAN tagging) defines:  
+- **Minimum frame size:** 64 bytes – anything smaller is a **runt** and is dropped.  
+- **Maximum expected size:** 1518 bytes – anything larger is considered a **giant** frame (unless special features like jumbo frames are used).
+
+---
+
+## Question 14  
+**Question:** Which two functions or operations are performed by the MAC sublayer? (Choose two.)  
+
+**Correct answers:**  
+- It is responsible for Media Access Control.  
+- It adds a header and trailer to form an OSI Layer 2 PDU.  
+
+**Explanation:**  
+The **MAC sublayer** of Layer 2:  
+- Implements **media access control** (who can send and when – e.g., CSMA/CD, CSMA/CA).  
+- Handles **framing**: adding the Layer-2 header and trailer (including source/destination MAC addresses and FCS) to create the Ethernet frame.  
+The **LLC sublayer**, not MAC, is the part that mainly communicates with upper layers and identifies which Layer-3 protocol is encapsulated.
+
