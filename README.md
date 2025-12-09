@@ -604,4 +604,759 @@ These two fields are different from the MAC addresses – they describe end‑to
 - **OUIs** identify the vendor (first 3 bytes of MAC), while the last 3 bytes are the NIC’s unique serial portion.
 - The **default gateway’s MAC** is the destination for any traffic leaving the local subnet, even when the final IP destination is on the internet.
 
+---
 
+## 7.2 Ethernet MAC Address
+
+In this topic I focus on how Ethernet uses **MAC addresses** at Layer 2 and why
+they are written in **hexadecimal**.
+
+---
+
+### 7.2.1 MAC Address and Hexadecimal
+
+In networking we use different number systems:
+
+- **IPv4** → usually written in **decimal** (base 10) and shown in **binary** (base 2).
+- **IPv6 and Ethernet MAC addresses** → written in **hexadecimal** (base 16).
+
+Hexadecimal:
+
+- Digits: **0–9** and **A–F** (A=10, B=11, …, F=15).
+- **1 hex digit = 4 bits**, so:
+  - 0000₂ = 0₁₆, 0001₂ = 1₁₆, …, 1111₂ = F₁₆.
+- Because 1 byte = 8 bits = 2 hex digits, binary `00000000` to `11111111`
+  maps to hex **00 to FF**.
+
+Hex values are often written as:
+
+- `0x73` (prefix `0x`), or  
+- `73₁₆`, or  
+- `73H`.
+
+When converting between decimal, binary, and hex, you can go via binary:
+decimal ↔ **binary** ↔ hexadecimal.
+
+---
+
+### 7.2.2 Ethernet MAC Address
+
+On an Ethernet LAN, all devices share the same Layer 2 medium.  
+Each **network interface card (NIC)** needs a unique **MAC address** so frames
+can identify the physical **source** and **destination**.
+
+Key facts:
+
+- An Ethernet MAC address is a **48-bit** value.
+- 48 bits = **6 bytes** = **12 hexadecimal digits**.
+
+Vendors obtain a unique **Organizationally Unique Identifier (OUI)** from the IEEE:
+
+- First **24 bits (3 bytes / 6 hex digits)** → **OUI** (vendor identifier).
+- Last **24 bits (3 bytes / 6 hex digits)** → vendor-assigned device value.
+
+Example structure:
+
+- OUI (Cisco example): `00-60-2F`
+- Vendor-assigned: `3A-07-BC`
+- Full MAC: `00-60-2F-3A-07-BC`
+
+Vendors must make sure each device/interface receives a **unique** MAC.  
+Duplicates can still appear due to manufacturing mistakes, VM cloning, or manual
+changes. In those cases the MAC can be changed in software or by replacing the
+NIC.
+
+---
+
+### 7.2.3 Frame Processing
+
+The MAC address is often called the **burned-in address (BIA)** because it is
+stored in **ROM** on the NIC. At boot:
+
+1. The NIC copies its MAC from ROM into RAM.
+2. When the device sends an Ethernet frame, the header includes:
+   - **Source MAC address** (MAC of the sending NIC)
+   - **Destination MAC address** (MAC of the intended receiver)
+
+When a NIC receives an Ethernet frame it:
+
+1. Checks the **destination MAC** against:
+   - Its own MAC (unicast),
+   - The **broadcast MAC**, or
+   - Any **multicast MACs** it is listening for.
+2. If there is **no match**, the frame is dropped.
+3. If there **is** a match, the frame is passed up the OSI layers and
+   de-encapsulated.
+
+Any device that sends or receives Ethernet frames—PCs, servers, printers,
+mobile devices, routers—has an Ethernet NIC and therefore at least one **MAC
+address**.
+
+---
+
+### 7.2.4 Unicast MAC Address
+
+Ethernet uses different MAC address types for **unicast, broadcast, and
+multicast** traffic.
+
+A **unicast MAC address**:
+
+- Identifies **one specific device** on the LAN.
+- Is used when one device sends a frame to exactly **one destination**.
+
+Example:
+
+- Host with IPv4 address **192.168.1.5** requests a web page from a server at
+  **192.168.1.200**.
+- For the packet to be sent, the source needs the **destination MAC**:
+  - For IPv4 it uses **ARP (Address Resolution Protocol)**.
+  - For IPv6 it uses **Neighbor Discovery (ND)**.
+- The resulting frame has:
+  - **Source MAC** = unicast MAC of the sender’s NIC.
+  - **Destination MAC** = unicast MAC of the server’s NIC.
+
+The **source MAC address is always unicast**.
+
+---
+
+### 7.2.5 Broadcast MAC Address
+
+A **broadcast MAC address** is processed by **every device** on the local
+Ethernet LAN (broadcast domain).
+
+Characteristics:
+
+- Destination MAC is **FF-FF-FF-FF-FF-FF** (48 ones in binary).
+- The switch **floods** the frame out all ports except the incoming one.
+- Routers **do not forward** Ethernet broadcasts to other networks.
+
+If the encapsulated packet is an IPv4 broadcast:
+
+- The destination IPv4 address has all **1s in the host portion**, e.g.
+  **192.168.1.255**.
+- When that IPv4 packet is placed in an Ethernet frame, the destination MAC is
+  **FF-FF-FF-FF-FF-FF**.
+
+Examples:
+
+- **DHCP for IPv4** uses Ethernet broadcasts together with IPv4 broadcast
+  addresses.
+- **ARP Requests** are also sent as Ethernet broadcasts (even though they carry
+  an ARP message, not an IPv4 broadcast packet).
+
+These broadcasts ensure that all devices on the LAN receive and can respond to
+important discovery or configuration messages.
+
+---
+
+# 7.2.6 Multicast MAC Address & 7.2.7 Lab – View Network Device MAC Addresses
+
+This markdown is part of my CCNA *Module 7 – Ethernet Switching* notes.  
+Focus here is on **multicast MAC addressing** and a hands-on lab where I
+inspect **real MAC addresses on a PC and a switch**.
+
+---
+
+## 7.2.6 Multicast MAC Address
+
+### What is an Ethernet multicast frame?
+
+An **Ethernet multicast frame** is delivered to a *group* of devices on the
+same Ethernet LAN, instead of a single host (unicast) or all hosts
+(broadcast).
+
+Only devices that are members of the specific multicast group will process
+the frame; other devices ignore it.
+
+### Key properties of Ethernet multicast
+
+- The frame has a **special destination MAC address** that indicates
+  multicast:
+  - For **IPv4 multicast traffic**, the destination MAC **starts with**
+    `01-00-5E` (the remaining bits come from the IPv4 multicast address).
+  - For **IPv6 multicast traffic**, the destination MAC **starts with**
+    `33-33`.
+- There are additional **reserved multicast MAC addresses** used for
+  non-IP protocols, for example:
+  - **STP** (Spanning Tree Protocol)
+  - **LLDP** (Link Layer Discovery Protocol)
+- By default, a switch **floods multicast frames** out all ports in the
+  VLAN **except the incoming port**, *unless* features such as
+  **multicast/IGMP snooping** are configured to limit this.
+- Routers **do not forward multicast frames** by default. They only forward
+  them if **multicast routing** is configured.
+
+### Multicast IP addressing
+
+If the encapsulated data is an IP multicast packet, the destination **IP**
+address is also multicast:
+
+- IPv4 multicast range: **224.0.0.0 – 239.255.255.255**
+- IPv6 multicast range: all addresses starting with **`ff00::/8`**
+
+Important points:
+
+- A **multicast IP address** represents a *group of hosts* (a host group).
+- Because of that, it **can only be used as a destination** address.
+- The **source** address in any multicast packet is always **unicast**.
+
+### Mapping IP multicast to MAC multicast
+
+To deliver a multicast packet on the local network, the **multicast IP
+address is mapped to a multicast MAC address**.  
+The host NIC listens for the specific multicast MACs that correspond to the
+multicast groups it has joined.
+
+This mapping ensures that only hosts in the multicast group receive and
+process the frame, even though the frame is still delivered using normal
+Ethernet mechanisms.
+
+### Where is multicast used?
+
+Common examples:
+
+- **Routing protocols** (e.g., sending routing updates to a group of
+  routers).
+- **Network discovery and control protocols**.
+- Some **applications** such as video streaming, imaging, and other
+  one-to-many / many-to-many communication patterns  
+  (although “real” multicast applications are less common in many
+  enterprise networks).
+
+---
+
+## 7.2.7 Lab – View Network Device MAC Addresses
+
+### Lab goal
+
+Use a very small topology (one **switch** and one **PC**) to:
+
+1. Discover the **MAC address of a PC**.
+2. See how the **switch learns and stores MAC addresses** in its MAC
+   address table.
+3. Relate this to **Layer 2 broadcasts** and **Layer 3 broadcasts**.
+
+### Topology & addressing
+
+**Devices**
+
+| Device | Interface / VLAN | IPv4 Address  | Subnet Mask      |
+|--------|------------------|--------------|------------------|
+| S1     | VLAN 1           | 192.168.1.2  | 255.255.255.0    |
+| PC-A   | NIC              | 192.168.1.3  | 255.255.255.0    |
+
+- PC-A is connected to **S1 FastEthernet 0/6 (Fa0/6)**.
+
+---
+
+### Part 1 – View the MAC address of the PC
+
+#### Step 1 – Display the MAC address on PC-A
+
+On PC-A:
+
+1. Open **Command Prompt**.
+2. Run:
+
+   ```bash
+   ipconfig /all
+   ```
+
+3. Find the **Ethernet adapter** used to connect to S1.
+4. Note:
+   - **IPv4 Address** (should be `192.168.1.3`).
+   - **Physical Address** – this is the **MAC address** of PC-A.
+
+> In the original lab you write down this address; in my notes I simply
+> refer to it as **MAC(PC-A)**.
+
+#### Step 2 – Verify connectivity between S1 and PC-A
+
+On the **switch S1** (console or SSH):
+
+1. Enter privileged EXEC mode:
+
+   ```text
+   S1> enable
+   ```
+
+2. From S1, ping PC-A:
+
+   ```text
+   S1# ping 192.168.1.3
+   ```
+
+3. Successful replies confirm:
+   - VLAN 1 interface (`192.168.1.2`) is up.
+   - PC-A (`192.168.1.3`) is reachable at Layer 3.
+   - The devices have exchanged frames, so **MAC learning** can occur.
+
+---
+
+### Part 2 – View the switch MAC address table
+
+#### Step 1 – Display the complete MAC address table
+
+On S1:
+
+```text
+S1# show mac address-table
+```
+
+The output lists:
+
+- Several **STATIC** MAC entries used internally by the switch (CPU, STP,
+  etc.).
+- One **DYNAMIC** entry learned on the access port connected to PC-A, for
+  example:
+
+```text
+   VLAN    MAC Address       Type       Ports
+   ----    -----------       ----       -----
+   ...
+     1     5c26.0a24.2a60    DYNAMIC    Fa0/6
+Total Mac Addresses for this criterion: 21
+```
+
+This dynamic entry is **MAC(PC-A)** on **Fa0/6**.
+
+---
+
+### Lab Questions & Answers
+
+#### Question – Did the switch display the MAC address of PC-A?  
+If yes, what port was it on?
+
+- **Answer:** Yes. The switch shows PC-A’s MAC address as a **dynamic** entry
+  on interface **FastEthernet 0/6 (Fa0/6)**.
+- **Why?**
+  - When S1 received frames from PC-A on Fa0/6, it **learned** the source
+    MAC address and added it to the MAC address table, associating that MAC
+    with Fa0/6.
+  - Any unicast frames **to** MAC(PC-A) are now forwarded **only** out
+    Fa0/6.
+
+---
+
+### Reflection Questions
+
+#### 1. Can you have broadcasts at the Layer 2 level?  
+If so, give an example of a typical MAC broadcast address.
+
+- **Answer:** Yes. At Layer 2, Ethernet supports **broadcast frames**.
+  The standard MAC broadcast address is:
+
+  ```text
+  FF-FF-FF-FF-FF-FF
+  ```
+
+- **Why?**
+  - This MAC address is all 1s in binary (48 bits of 1).
+  - Every Ethernet NIC treats `FF-FF-FF-FF-FF-FF` as **“listen and process
+    this frame”**, regardless of its own unicast MAC.
+  - Switches flood Layer 2 broadcasts out all ports in the same VLAN (except
+    the incoming port).
+
+#### 2. Can you have broadcasts at the Layer 3 level?  
+If so, give an example of a typical IP broadcast address.
+
+- **Answer:** Yes. IPv4 supports **broadcast IP addresses**. Common examples:
+
+  - **Limited broadcast:** `255.255.255.255`
+  - **Directed broadcast** to a specific subnet, e.g.
+    `192.168.1.255` for the subnet `192.168.1.0/24`.
+
+- **Why?**
+  - A Layer 3 broadcast address means “deliver to **all hosts on this
+    network**”.
+  - When an IPv4 broadcast is encapsulated in Ethernet, it is sent to the
+    Layer 2 broadcast MAC `FF-FF-FF-FF-FF-FF`, so that every host on the
+    LAN sees the packet.
+
+---
+
+### What I’m supposed to understand here
+
+- **Multicast MAC and IP addressing** allow one sender to efficiently reach
+  **a group of receivers**, without sending separate unicast copies.
+- **Switches learn MAC addresses** dynamically by watching the **source**
+  MAC of incoming frames and building a **MAC address table**.
+- **Layer 2 broadcasts** use the all-ones MAC address and are flooded across
+  a broadcast domain.
+- **Layer 3 broadcasts** use special IPv4 addresses (like 255.255.255.255
+  or the subnet broadcast) and, when carried over Ethernet, still rely on
+  the Layer 2 broadcast MAC address.
+
+---
+
+# CCNA – Ethernet Switching (Module 7)
+
+## 7.3 The MAC Address Table
+
+This section focuses on how a Layer 2 switch learns MAC addresses, builds its **MAC address table** (CAM
+table), and uses it to decide whether to **forward, flood, or filter** Ethernet frames.
+
+
+---
+
+### 7.3.1 Switch Fundamentals
+
+A Layer 2 Ethernet switch forwards frames based only on **Layer 2 MAC addresses**. It does **not** care what
+protocol is inside the data field (IPv4, IPv6, ARP, ND, etc.).
+
+* If a switch behaved like a hub and simply repeated every incoming bit out of all ports, the LAN would
+  quickly become congested.
+* Instead, the switch keeps a **MAC address table** that maps `MAC address → switch port`. This is sometimes
+  called a **CAM (Content Addressable Memory) table**, but in this module it is referred to simply as the
+  MAC address table.
+* Each time the switch receives a frame, it consults this table to decide what to do with the frame.
+
+
+---
+
+### 7.3.2 Switch Learning and Forwarding
+
+The switch has two core jobs:
+
+1. **Learn** MAC addresses from the source of incoming frames.
+2. **Forward** frames toward the correct destination, or flood them if the destination is unknown.
+
+#### Learning – Examine the Source MAC Address
+
+For every frame that arrives on a port, the switch:
+
+1. Looks at the **source MAC address** and the **ingress port**.
+2. If that MAC address is **not** already in the table, it adds a new entry:
+   `source MAC → incoming port`.
+3. If the MAC address **is** already there on the same port, it simply refreshes the **aging timer**
+   (typically **5 minutes**).
+4. If the MAC address is present but mapped to a **different port**, the switch treats this as a move and
+   **updates** the entry to the new port.
+
+**Example – PC‑A sends to PC‑D**
+
+* Four hosts (A–D) are connected to switch ports 1–4.
+* PC‑A (MAC `00-0A`) on port 1 sends a frame to PC‑D (MAC `00-0D`).
+* The switch sees the frame arrive on **port 1** with **source MAC 00-0A**.
+* It creates/updates the entry: `00-0A → port 1`.
+
+At this moment the MAC address table contains **only** PC‑A’s entry.
+
+#### Forwarding – Find the Destination MAC Address
+
+After learning from the source, the switch checks the **destination MAC**:
+
+* If the destination is a **unicast** MAC address and **exists** in the MAC table, the frame is forwarded
+  **only out that specific port**.
+* If the destination is a unicast MAC address that is **not** in the table, the frame is treated as an
+  **unknown unicast** and is **flooded** out **all ports except the incoming one**.
+* If the destination is a **broadcast** or **multicast** MAC address, the frame is also **flooded** out all
+  ports except the one it came in on.
+
+**Continuing the example**
+
+* The destination MAC for PC‑D (`00-0D`) is **not** yet in the MAC table.
+* The switch therefore **floods** the frame out ports 2, 3, and 4 (all ports except port 1).
+
+
+---
+
+### 7.3.3 Filtering Frames
+
+As more frames traverse the switch, the MAC address table fills up, allowing the switch to **filter** frames
+and send them only where they are needed.
+
+#### Step 1 – PC‑D to Switch (Learning PC‑D)
+
+* PC‑D (MAC `00-0D`) on port 4 replies to PC‑A (MAC `00-0A`).
+* The frame arrives on **port 4** with **source MAC 00-0D** and **destination MAC 00-0A**.
+* The switch adds a new entry: `00-0D → port 4`.
+
+Now the MAC address table has at least:
+
+* `00-0A → port 1`
+* `00-0D → port 4`
+
+#### Step 2 – Switch to PC‑A
+
+* Because the switch already has `00-0A → port 1` in the table,
+* It forwards the reply **only out port 1** to PC‑A.
+* This is an example of **frame filtering** – instead of flooding to all ports, the switch sends the frame
+  only where it is needed.
+
+#### Step 3 – PC‑A to Switch to PC‑D (Refresh + Filter)
+
+* PC‑A sends another frame to PC‑D.
+* The switch again sees **source MAC 00-0A on port 1** and **refreshes the aging timer** for that entry.
+* Because it already knows that `00-0D → port 4`, the switch forwards the frame **only out port 4**.
+
+Result: traffic is now efficiently switched only between ports 1 and 4 for this conversation.
+
+
+---
+
+### 7.3.4 Video – MAC Address Tables on Connected Switches
+
+When switches are connected to each other, a single port can learn **multiple MAC addresses**. The video
+walks through how two switches (S1 and S2) learn addresses when PC‑A and PC‑B communicate.
+
+**Scenario summary**
+
+* PC‑A sends a frame to PC‑B.
+  * **Source MAC:** `00-0A` (PC‑A)  
+    **Destination MAC:** `00-0B` (PC‑B)
+* S1 receives the frame:
+  1. Learns `00-0A` on its port connected to PC‑A and adds it to its MAC table.
+  2. Does not yet know `00-0B`, so it **floods** the frame out all other ports.
+* PC‑B receives the flooded frame:
+  * Destination MAC matches its own, so it accepts the frame.
+* The frame also reaches S2:
+  1. S2 learns `00-0A` on the port facing S1.
+  2. S2 still does not know `00-0B`, so it also floods the frame out its other ports.
+  3. Hosts whose MAC does **not** match the destination simply **discard** the frame.
+
+Next, PC‑B replies to PC‑A:
+
+* **Source MAC:** `00-0B` (PC‑B)  
+  **Destination MAC:** `00-0A` (PC‑A)
+* S1 receives the frame from PC‑B:
+  1. Learns `00-0B` on the PC‑B-facing port.
+  2. Already has `00-0A → PC‑A port` in its table, so it forwards directly **only to that port**.
+* PC‑A receives the reply and accepts it because the destination MAC matches its own address.
+
+At the end of this exchange:
+
+* **S1** knows MACs for PC‑A and PC‑B on their respective ports.
+* **S2** has learned MACs for the hosts reachable through the inter‑switch link.
+* A single inter‑switch port can thus map to **many** MAC addresses in the table.
+
+
+---
+
+### 7.3.5 Video – Sending the Frame to the Default Gateway
+
+This video shows what happens when PC‑A sends traffic to a **remote network**. In that case, frames go to
+the **default gateway’s MAC address**, not directly to the remote host.
+
+**Outbound from PC‑A to the Internet**
+
+* PC‑A needs to reach an IP address on another network.
+* It builds an Ethernet frame with:
+  * **Source MAC:** PC‑A
+  * **Destination MAC:** router (default gateway, e.g. `00-0D`)
+* The frame is sent to switch S1.
+  1. S1 refreshes the MAC table entry for PC‑A’s MAC (already known).
+  2. S1 does not yet know the router’s MAC, so it **floods** the frame out all other ports.
+* Other hosts (PC‑B, PC‑C) receive the flooded frame, see that the destination MAC does **not** match
+  their own, and drop it.
+* S2 also receives and floods the frame until it reaches the router.
+* The router’s interface MAC **does** match the destination, so the router accepts the frame and processes
+  the IP packet for forwarding to the remote network.
+
+**Return traffic from the router back to PC‑A**
+
+* The returning IP packet has:
+  * **Source IP:** remote host  
+    **Destination IP:** PC‑A
+* At Layer 2, the router sends a frame with:
+  * **Source MAC:** router
+  * **Destination MAC:** PC‑A
+* The frame goes to S2:
+  1. S2 doesn’t yet have the router MAC in its table, so it adds it.
+  2. S2 already knows PC‑A’s MAC, so it forwards the frame out only the correct port toward S1.
+* S1 repeats the process:
+  1. Learns the router MAC on its S2‑facing port (if new).
+  2. Uses its table entry for PC‑A to send the frame only out PC‑A’s port.
+* PC‑A sees its own MAC as the destination and accepts the frame.
+
+Key point: even for remote destinations, the **Ethernet frame** is always addressed **between local MAC
+addresses**: host ↔ default‑gateway ↔ next hop, and so on.
+
+
+---
+
+### 7.3.6 Activity – “Switch It!”
+
+The interactive **Switch It!** activity asks you to decide how a switch forwards a single frame based on:
+
+* The **source MAC** and **destination MAC** in the frame.
+* The current **MAC address table** entries for each switch port.
+
+Typical questions you answer:
+
+1. **“Where will the switch forward the frame?”**  
+   You choose the correct outgoing interface (Fa1, Fa2, … Fa12) depending on whether:
+   * The destination MAC is known (forward only to that port), or
+   * The destination MAC is unknown or a broadcast (flood out all ports except the incoming one).
+
+2. **“Which statements are true when the switch forwards the frame?”** Examples include:
+   * Whether the switch **adds** the source MAC to the MAC table (when it is new).
+   * Whether the frame is **broadcast** to all ports.
+   * Whether it is a **unicast** that is forwarded to a **single** port or **flooded**.
+   * Whether the frame would ever be **dropped** at the switch.
+
+The goal of the activity is to practice reading the MAC address table and predicting the switch’s behaviour.
+
+
+---
+
+## 7.3.7 Lab – View the Switch MAC Address Table
+
+This lab uses two switches and two PCs to show how switches learn MAC addresses and how you can
+inspect and clear the MAC address table from the CLI. (Lab: *View the Switch MAC Address Table*.) fileciteturn4file0
+
+
+### Topology and Addressing
+
+Devices and VLAN 1 addressing:
+
+| Device | Interface | IP address     | Subnet mask       |
+|--------|-----------|----------------|-------------------|
+| S1     | VLAN 1    | 192.168.1.11   | 255.255.255.0     |
+| S2     | VLAN 1    | 192.168.1.12   | 255.255.255.0     |
+| PC‑A   | NIC       | 192.168.1.1    | 255.255.255.0     |
+| PC‑B   | NIC       | 192.168.1.2    | 255.255.255.0     |
+
+S1 connects to PC‑A, S2 connects to PC‑B, and S1–S2 are linked by a FastEthernet trunk (F0/1 in the
+topology).
+
+
+### Part 1 – Build and Configure the Network
+
+1. **Cable the topology**
+   * Connect PC‑A to S1 (e.g., F0/6), PC‑B to S2 (e.g., F0/18), and S1 to S2 via F0/1.
+   * Use straight‑through Ethernet cables; on Catalyst 2960s the ports are autosensing.
+
+2. **Configure the PCs**
+   * On PC‑A and PC‑B, configure the IPv4 addresses and subnet masks from the table above.
+
+3. **Initialize and reload the switches (if needed)**
+   * Erase any existing startup configuration and reload to start from a clean state.
+
+4. **Apply basic switch configuration**
+   * Give each switch a hostname (`S1`, `S2`).
+   * Configure **VLAN 1** with the management IP address from the table.
+   * Set console and VTY passwords to `cisco`.
+   * Set the privileged EXEC password to `class`.
+
+
+### Part 2 – Examine the Switch MAC Address Table
+
+The main goal is to see **how the MAC table changes** as traffic flows through the switches.
+
+
+#### Step 1 – Record the MAC Addresses
+
+1. On **PC‑A** and **PC‑B**, open a command prompt and run:
+
+   ```bash
+   ipconfig /all
+   ```
+
+   * Note each PC’s **physical (MAC) address** on its Ethernet adapter.
+
+2. From the console on **S1** and **S2**, run:
+
+   ```text
+   show interface f0/1
+   ```
+
+   * On the second line of the output, record the **hardware address** (also listed as the BIA –
+     burned‑in address) for F0/1 on both switches.
+
+
+#### Step 2 – Display the MAC Address Table (Before Traffic)
+
+On **S2**, display the table before you generate any user traffic:
+
+```text
+S2# show mac address-table
+```
+
+* Even without pings, there may already be entries from directly connected devices or from the
+  inter‑switch link.
+* Identify which MAC addresses are present and to which ports they map (ignore internal CPU entries).
+* If you have written down the device MAC addresses from Step 1, you can match each MAC entry to
+  a device by port:
+  * MAC on PC‑B’s port → PC‑B
+  * MAC on F0/1 → S1 or PC‑A traffic going through S1, etc.
+* Without prior notes, you could infer some mappings from the connected port (for example, the MAC
+  seen on the port facing S1 likely belongs to S1 or hosts behind it), but this may not always be exact
+  on larger or more complex topologies.
+
+
+#### Step 3 – Clear the MAC Address Table and Watch It Rebuild
+
+1. On S2, clear the **dynamic** entries:
+
+   ```text
+   S2# clear mac address-table dynamic
+   ```
+
+2. Immediately run:
+
+   ```text
+   S2# show mac address-table
+   ```
+
+   * Dynamic entries for VLAN 1 should now be gone. You might still see some static or system entries.
+
+3. Wait ~10 seconds and repeat `show mac address-table`.
+
+   * As control traffic or management frames are exchanged, new entries can start appearing again.
+   * This shows how **quickly** switches relearn MAC addresses when traffic resumes.
+
+
+#### Step 4 – Generate Traffic from PC‑B and Observe MAC and ARP Tables
+
+1. On **PC‑B**, open a command prompt and display the ARP cache:
+
+   ```bash
+   arp -a
+   ```
+
+   * At this point, ARP may have few or no entries besides broadcast/multicast.
+
+2. From PC‑B, ping all devices in the topology:
+
+   ```bash
+   ping 192.168.1.1   # PC‑A
+   ping 192.168.1.11  # S1
+   ping 192.168.1.12  # S2
+   ```
+
+   * Ensure all pings succeed; if not, troubleshoot cabling or IP configuration.
+
+3. Back on S2, run:
+
+   ```text
+   S2# show mac address-table
+   ```
+
+   * You should now see **additional dynamic entries** for the MAC addresses of PC‑A, PC‑B, and S1.
+   * Each entry maps a MAC address to the port where S2 learned it (e.g., PC‑B on F0/18, S1/PC‑A
+     reachable via F0/1).
+
+4. On PC‑B, run `arp -a` again.
+
+   * The ARP cache should now contain **IP → MAC** mappings for all devices you just pinged
+     (PC‑A, S1, and S2).
+   * This mirrors how the switches have populated their **MAC tables** with the same MAC addresses,
+     but mapped to **ports** instead of IPs.
+
+
+#### Reflection – Challenges on Larger Networks
+
+On small topologies, keeping track of MAC and ARP entries is straightforward. On larger networks you can
+run into challenges such as:
+
+* **Scale:** Switches must store thousands of MAC entries; if the table fills, older entries may be aged out
+  and traffic can be flooded more often.
+* **Mobility and changes:** Hosts that move between ports cause frequent table updates.
+* **Troubleshooting difficulty:** With many switches and interconnections, it can be harder to trace which
+  device owns a particular MAC entry.
+* **Security concerns:** Attackers can exploit MAC learning (e.g., MAC flooding or spoofing) if the network
+  is not properly secured.
+
+This lab helps build intuition for reading MAC tables and understanding how frames are delivered on a
+switched Ethernet network.
